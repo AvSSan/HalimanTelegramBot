@@ -1,10 +1,14 @@
 import telebot
 from telebot import types
 import sqlite3
+import requests
 from datetime import datetime
 
 API_TOKEN = '6558494391:AAFatYzSEY_jbxqjRRJzPo_TyTr1impAM0Y'
 bot = telebot.TeleBot(API_TOKEN)
+
+WEATHER_API_KEY = "0f94b131398d98e61c71d797a44576a5"
+url = f"https://api.weatherstack.com/current?access_key={WEATHER_API_KEY}"
 
 conn = sqlite3.connect('todo.db', check_same_thread=False)
 cursor = conn.cursor()
@@ -20,11 +24,9 @@ conn.commit()
 
 def main_menu():
     keyboard = types.ReplyKeyboardMarkup(resize_keyboard=True)
-    keyboard.add(types.KeyboardButton("Добавить задачу"))
-    keyboard.add(types.KeyboardButton("Задачи на сегодня"))
-    keyboard.add(types.KeyboardButton("Все задачи"))
-    keyboard.add(types.KeyboardButton("Отметить выполненное"))
-    keyboard.add(types.KeyboardButton("Мои данные"))
+    keyboard.add(types.KeyboardButton("Добавить задачу"), types.KeyboardButton("Отметить выполненное"))
+    keyboard.add(types.KeyboardButton("Задачи на сегодня"), types.KeyboardButton("Все задачи"))
+    keyboard.add(types.KeyboardButton("Мои данные"), types.KeyboardButton("Погода"))
     return keyboard
 
 
@@ -106,6 +108,26 @@ def complete_task(call):
 def my_data(message):
     print(message.chat.id)
     bot.send_message(message.chat.id, f"{message.chat.id}")
+
+
+@bot.message_handler(regexp="Погода")
+def weather(message):
+    msg = bot.send_message(message.chat.id, "Введите название города (на английском): ")
+    bot.register_next_step_handler(msg, get_weather)
+
+
+def get_weather(message):
+    task = message.text
+    querystring = {f"query": {task}}
+    try:
+        req = requests.get(url, params=querystring).json()
+        answer = (f"Город: {req['request']['query']}\n"
+                  f"Температура: {req['current']['temperature']} градусов\n"
+                  f"Скорость ветра: {req['current']['wind_speed']} км/ч")
+        bot.send_message(message.chat.id, f"{answer}", reply_markup=main_menu())
+    except Exception:
+        bot.send_message(message.chat.id, f"Город не найден или неправильное название")
+
 
 
 bot.infinity_polling()
