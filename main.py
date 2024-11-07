@@ -5,8 +5,8 @@ from datetime import datetime
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup, ReplyKeyboardMarkup
 from telegram.ext import Application, CommandHandler, MessageHandler, filters, CallbackQueryHandler, ConversationHandler
 
-API_TOKEN = '6558494391:AAFatYzSEY_jbxqjRRJzPo_TyTr1impAM0Y'
-WEATHER_API_KEY = "0f94b131398d98e61c71d797a44576a5"
+API_TOKEN = 'Your bot API token'
+WEATHER_API_KEY = "Your WeatherStack API key"
 url = f"https://api.weatherstack.com/current?access_key={WEATHER_API_KEY}"
 
 logging.basicConfig(
